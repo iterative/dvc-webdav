@@ -10,9 +10,7 @@ from .httpd import run_server_on_thread
 
 @pytest.fixture(scope="session")
 def docker_compose_file(pytestconfig):
-    return os.path.join(
-        str(pytestconfig.rootdir), "dvc_webdav", "tests", "docker-compose.yml"
-    )
+    return os.path.join(os.path.dirname(__file__), "docker-compose.yml")
 
 
 @pytest.fixture
