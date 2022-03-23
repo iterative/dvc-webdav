@@ -3,12 +3,13 @@ from dvc.testing.path_info import WebDAVURLInfo
 from funcy import cached_property, first
 
 AUTH = {"user1": {"password": "password1"}}
+BASE_PATH = "/dav/files/user1"
 
 
 class Webdav(Cloud, WebDAVURLInfo):
     @staticmethod
     def get_url(port):  # pylint: disable=arguments-differ
-        return f"webdav://localhost:{port}"
+        return f"webdav://localhost:{port}{BASE_PATH}"
 
     @property
     def config(self):
@@ -22,7 +23,7 @@ class Webdav(Cloud, WebDAVURLInfo):
 
         user, secrets = first(AUTH.items())
         return Client(
-            self.replace(path="").url, auth=(user, secrets["password"])
+            self.replace(path=BASE_PATH).url, auth=(user, secrets["password"])
         )
 
     def mkdir(self, mode=0o777, parents=False, exist_ok=False):
