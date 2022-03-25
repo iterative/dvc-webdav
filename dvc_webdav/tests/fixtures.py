@@ -1,23 +1,18 @@
 import os
+import threading
 from wsgiref.simple_server import make_server
 
 import pytest
 from wsgidav.wsgidav_app import WsgiDAVApp
 
-from .cloud import AUTH, Webdav
-from .httpd import run_server_on_thread
-
-
-@pytest.fixture(scope="session")
-def docker_compose_file(pytestconfig):
-    return os.path.join(os.path.dirname(__file__), "docker-compose.yml")
+from .cloud import AUTH, BASE_PATH, Webdav
 
 
 @pytest.fixture
 def webdav_server(tmp_path_factory):
     host, port = "localhost", 0
     directory = os.fspath(tmp_path_factory.mktemp("http"))
-    dirmap = {"/": directory}
+    dirmap = {BASE_PATH: directory}
 
     app = WsgiDAVApp(
         {
@@ -27,9 +22,9 @@ def webdav_server(tmp_path_factory):
             "simple_dc": {"user_mapping": {"*": AUTH}},
         }
     )
-    server = make_server(host, port, app)
-    with run_server_on_thread(server) as httpd:
-        yield httpd
+    with make_server(host, port, app) as server:
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        yield server
 
 
 @pytest.fixture
