@@ -1,8 +1,7 @@
 import os
-import threading
-from wsgiref.simple_server import make_server
 
 import pytest
+from cheroot import wsgi
 from wsgidav.wsgidav_app import WsgiDAVApp
 
 from .cloud import AUTH, BASE_PATH, Webdav
@@ -22,15 +21,16 @@ def webdav_server(tmp_path_factory):
             "simple_dc": {"user_mapping": {"*": AUTH}},
         }
     )
-    with make_server(host, port, app) as server:
-        threading.Thread(target=server.serve_forever, daemon=True).start()
+
+    server = wsgi.Server(bind_addr=(host, port), wsgi_app=app)
+    with server._run_in_thread():  # pylint: disable=protected-access
         yield server
 
 
 @pytest.fixture
 def make_webdav(webdav_server):
     def _make_webdav():
-        url = Webdav.get_url(webdav_server.server_port)
+        url = Webdav.get_url(webdav_server.bind_addr[1])
         return Webdav(url)
 
     return _make_webdav
