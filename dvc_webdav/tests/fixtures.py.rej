@@ -1,0 +1,6 @@
+diff a/dvc_webdav/tests/fixtures.py b/dvc_webdav/tests/fixtures.py	(rejected hunks)
+@@ -19,4 +19,3 @@ def make_webdav():
+ @pytest.fixture
+ def webdav(make_webdav):
+     return make_webdav()
+-
