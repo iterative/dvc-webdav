@@ -6,9 +6,9 @@ repos:
       - id: black
         language_version: python3
     repo: https://github.com/ambv/black
-    rev: 22.3.0
+    rev: 22.12.0
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.0.1
+    rev: v4.4.0
     hooks:
       - id: check-toml
       - id: check-yaml
@@ -18,12 +18,12 @@ repos:
           - --ignore-words-list
           - ba,datas,fo,uptodate
     repo: https://github.com/codespell-project/codespell
-    rev: v2.1.0
+    rev: v2.2.2
   - hooks:
       - id: isort
         language_version: python3
     repo: https://github.com/timothycrosley/isort
-    rev: 5.9.3
+    rev: 5.11.4
   - hooks:
       - id: flake8
         language_version: python3
@@ -32,8 +32,8 @@ repos:
           - flake8-comprehensions
           - flake8-debugger
           - flake8-string-format
-    repo: https://gitlab.com/pycqa/flake8
-    rev: 3.9.2
+    repo: https://github.com/pycqa/flake8
+    rev: 6.0.0
   - repo: local
     hooks:
     - id: mypy

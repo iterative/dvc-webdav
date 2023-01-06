@@ -6,6 +6,8 @@ from wsgidav.wsgidav_app import WsgiDAVApp
 
 from .cloud import AUTH, BASE_PATH, Webdav
 
+# pylint: disable=redefined-outer-name
+
 
 @pytest.fixture
 def webdav_server(tmp_path_factory):

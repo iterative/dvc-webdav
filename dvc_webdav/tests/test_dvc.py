@@ -5,6 +5,12 @@ from dvc.testing.api_tests import (  # noqa, pylint: disable=unused-import
 from dvc.testing.remote_tests import (  # noqa, pylint: disable=unused-import
     TestRemote,
 )
+from dvc.testing.workspace_tests import (  # noqa, pylint: disable=unused-import
+    TestAdd,
+    TestGetUrl,
+    TestImport,
+    TestLsUrl,
+)
 
 
 @pytest.fixture

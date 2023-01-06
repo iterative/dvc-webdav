@@ -44,13 +44,14 @@ class Webdav(Cloud, WebDAVURLInfo):
         return self.path.lstrip("/")
 
     def exists(self):
-        raise NotImplementedError
+        return self.client.exists(self.path)
 
     def is_dir(self):
-        raise NotImplementedError
+        return self.client.isdir(self.path)
 
     def is_file(self):
-        raise NotImplementedError
+        return self.client.isfile(self.path)
 
     def read_bytes(self):
-        raise NotImplementedError
+        with self.client.open(self.path, mode="rb") as f:
+            return f.read()
