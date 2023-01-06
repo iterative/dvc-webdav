@@ -51,27 +51,17 @@ warn_redundant_casts = true
 warn_unreachable = true
 files = ["dvc_webdav"]
 
-[tool.pylint.master]
-extension-pkg-whitelist = ["pygit2"]
-init-hook = "import sys; sys.path.append(str('tests'))"
-load-plugins = ["pylint_pytest"]
-
 [tool.pylint.message_control]
 disable = [
-    "format", "refactoring", "spelling", "design", "no-self-use",
-    "invalid-name", "misplaced-comparison-constant", "duplicate-code", "fixme",
-    "unused-wildcard-import", "cyclic-import", "wrong-import-order",
-    "wrong-import-position", "ungrouped-imports", "multiple-imports",
-    "logging-format-interpolation", "logging-fstring-interpolation",
+    "format", "refactoring", "spelling", "design", "invalid-name",
+    "cyclic-import", "wrong-import-order", "multiple-imports",
+    "wrong-import-position", "ungrouped-imports",
     "missing-function-docstring", "missing-module-docstring",
-    "missing-class-docstring", "raise-missing-from", "import-outside-toplevel",
+    "missing-class-docstring", "import-outside-toplevel",
 ]
 enable = ["c-extension-no-member", "no-else-return"]
 
 [tool.pylint.typecheck]
-generated-members = ["pytest.lazy_fixture", "logging.TRACE", "logger.trace", "sys.getwindowsversion", "argparse.Namespace"]
-ignored-classes = ["Dvcfile"]
-ignored-modules = ["azure"]
 signature-mutators = ["funcy.decorators.decorator"]
 
 [tool.pylint.variables]
