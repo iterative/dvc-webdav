@@ -63,16 +63,18 @@ class WebDAVFileSystem(FileSystem):  # pylint:disable=abstract-method
     def _prepare_credentials(self, **config):
         user = config.get("user", None)
         password = config.get("password", None)
-
         headers = {}
-        token = config.get("token")
         auth = None
-        if token:
+        if token := config.get("token"):
             headers.update({"Authorization": f"Bearer {token}"})
         elif user:
             if not password and config.get("ask_password"):
                 password = ask_password(config["host"], user)
             auth = (user, password)
+        elif custom_auth_header := config.get("custom_auth_header"):
+            if not password and config.get("ask_password"):
+                password = ask_password(config["host"], custom_auth_header)
+            headers.update({custom_auth_header: password})
 
         return {"headers": headers, "auth": auth}
 
