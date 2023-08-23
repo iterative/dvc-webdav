@@ -2,8 +2,9 @@ import logging
 import threading
 from getpass import getpass
 
+from dvc.utils.objects import cached_property
 from dvc_objects.fs.base import FileSystem
-from funcy import cached_property, memoize, wrap_prop, wrap_with
+from funcy import memoize, wrap_prop, wrap_with
 
 logger = logging.getLogger(__name__)
 
