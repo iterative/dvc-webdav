@@ -39,6 +39,12 @@ class Webdav(Cloud, WebDAVURLInfo):
 
         self.client.upload_fileobj(BytesIO(contents), self.path)
 
+    def unlink(self, missing_ok: bool = False) -> None:
+        raise NotImplementedError
+
+    def rmdir(self, recursive: bool = True) -> None:
+        raise NotImplementedError
+
     @property
     def fs_path(self):
         return self.path.lstrip("/")
