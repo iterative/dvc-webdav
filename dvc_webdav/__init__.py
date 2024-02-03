@@ -1,10 +1,12 @@
 import logging
 import threading
 from getpass import getpass
+from typing import ClassVar
+
+from funcy import memoize, wrap_prop, wrap_with
 
 from dvc.utils.objects import cached_property
 from dvc_objects.fs.base import FileSystem
-from funcy import memoize, wrap_prop, wrap_with
 
 logger = logging.getLogger(__name__)
 
@@ -18,7 +20,7 @@ def ask_password(host, user):
 class WebDAVFileSystem(FileSystem):  # pylint:disable=abstract-method
     protocol = "webdav"
     root_marker = ""
-    REQUIRES = {"webdav4": "webdav4"}
+    REQUIRES: ClassVar[dict[str, str]] = {"webdav4": "webdav4"}
     PARAM_CHECKSUM = "etag"
 
     def __init__(self, **config):

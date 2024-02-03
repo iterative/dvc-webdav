@@ -1,6 +1,7 @@
+from funcy import cached_property, first
+
 from dvc.testing.cloud import Cloud
 from dvc.testing.path_info import WebDAVURLInfo
-from funcy import cached_property, first
 
 AUTH = {"user1": {"password": "password1"}}
 BASE_PATH = "/dav/files/user1"
@@ -29,7 +30,7 @@ class Webdav(Cloud, WebDAVURLInfo):
     def mkdir(self, mode=0o777, parents=False, exist_ok=False):
         assert mode == 0o777
         parent_dirs = list(reversed(self.parents))[1:] if parents else []
-        for d in parent_dirs + [self]:
+        for d in [*parent_dirs, self]:
             path = d.path  # pylint: disable=no-member
             if not self.client.exists(path):
                 self.client.mkdir(path)
