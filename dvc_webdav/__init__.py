@@ -26,8 +26,8 @@ class WebDAVFileSystem(FileSystem):  # pylint:disable=abstract-method
     def __init__(self, **config):
         super().__init__(**config)
 
-        cert_path = config.get("cert_path", None)
-        key_path = config.get("key_path", None)
+        cert_path = config.get("cert_path")
+        key_path = config.get("key_path")
         self.prefix = config.get("prefix", "")
         self.fs_args.update(
             {
@@ -64,8 +64,8 @@ class WebDAVFileSystem(FileSystem):  # pylint:disable=abstract-method
         }
 
     def _prepare_credentials(self, **config):
-        user = config.get("user", None)
-        password = config.get("password", None)
+        user = config.get("user")
+        password = config.get("password")
         headers = {}
         auth = None
         if token := config.get("token"):
