@@ -43,7 +43,7 @@ tests = [
     "pytest-cov>=4.1.0",
     "pytest-xdist>=3.2",
     "wsgidav>=3,<5",
-    "cheroot>=8.6,<11",
+    "cheroot>=8.6,<12",
 ]
 
 [project.urls]
