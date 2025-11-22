@@ -1,15 +1,14 @@
 import logging
-import keyring
 import threading
 from getpass import getpass
 from typing import ClassVar, Optional
 
+import keyring
 from funcy import memoize, wrap_prop, wrap_with
 
 from dvc.repo import Repo
 from dvc.utils.objects import cached_property
 from dvc_objects.fs.base import FileSystem
-
 from dvc_webdav.bearer_auth_client import BearerAuthClient
 
 logger = logging.getLogger("dvc")
@@ -23,7 +22,9 @@ def ask_password(host, user):
 
 @wrap_with(threading.Lock())
 @memoize
-def get_bearer_auth_client(bearer_token_command: str, token: Optional[str] = None, save_token_cb=None):
+def get_bearer_auth_client(
+    bearer_token_command: str, token: Optional[str] = None, save_token_cb=None
+):
     logger.debug(
         "Bearer token command provided, using BearerAuthClient, command: %s",
         bearer_token_command,
@@ -55,7 +56,9 @@ class WebDAVFileSystem(FileSystem):  # pylint:disable=abstract-method
         )
         if bearer_token_command := config.get("bearer_token_command"):
             self.fs_args["http_client"] = get_bearer_auth_client(
-                bearer_token_command, token=config.get('token'), save_token_cb=self._save_token
+                bearer_token_command,
+                token=config.get("token"),
+                save_token_cb=self._save_token,
             )
 
     def unstrip_protocol(self, path: str) -> str:
@@ -102,7 +105,9 @@ class WebDAVFileSystem(FileSystem):  # pylint:disable=abstract-method
         """Save or unset the token in the local DVC config."""
         remote_name = self._find_remote_name()
         if not remote_name:
-            logger.warning("Skipping token persistence - Could not find remote name to save token.")
+            logger.warning(
+                "Skipping token persistence - Could not find remote name to save token."
+            )
             return
 
         with Repo().config.edit("local") as conf:
