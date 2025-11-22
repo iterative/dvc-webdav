@@ -1,11 +1,11 @@
 import logging
 import shlex
-import threading
-import sys
-import httpx
-
 import subprocess
-from typing import List, Optional, Union, Protocol
+import sys
+import threading
+from typing import Optional, Protocol, Union
+
+import httpx
 
 logger = logging.getLogger("dvc")
 
@@ -13,20 +13,21 @@ logger = logging.getLogger("dvc")
 def _log_with_thread(level: int, msg: str, *args) -> None:
     """
     Universal helper to inject thread identity into logs.
-    Output format: [Thread-Name] [BearerAuthClient] Message...
+    Output format: [Thread-Name] Message...
     """
     if logger.isEnabledFor(level):
         thread_name = threading.current_thread().name
-        logger.log(level, f"[{thread_name}] {msg}", *args)
+        log_fmt = f"[{thread_name}] " + msg
+        logger.log(level, log_fmt, *args)
 
 
-def execute_command(command: Union[List[str], str], timeout: int = 10) -> str:
+def execute_command(command: Union[list[str], str], timeout: int = 10) -> str:
     """Executes a command to retrieve the token."""
     if isinstance(command, str):
         command = shlex.split(command)
 
     try:
-        result = subprocess.run(
+        result = subprocess.run(  # noqa: S603
             command,
             shell=False,
             capture_output=True,
@@ -35,17 +36,20 @@ def execute_command(command: Union[List[str], str], timeout: int = 10) -> str:
             timeout=timeout,
             encoding="utf-8",
         )
-        token = result.stdout.strip()
-        if not token:
-            raise ValueError("Command executed successfully but returned an empty token.")
-        return token
-
-    except (FileNotFoundError, subprocess.TimeoutExpired, subprocess.CalledProcessError, ValueError, Exception) as e:
+    except (
+        FileNotFoundError,
+        subprocess.TimeoutExpired,
+        subprocess.CalledProcessError,
+        ValueError,
+        OSError,
+    ) as e:
         error_header = "\n" + "=" * 60
-        error_msg = f"{error_header}\n[CRITICAL] Bearer Token Retrieval Failed.\n" \
-                    f"DVC may misinterpret this as 'File Not Found' and skip files.\n" \
-                    f"Command: {command}\n" \
-                    f"Error: {e}"
+        error_msg = (
+            f"{error_header}\n[CRITICAL] Bearer Token Retrieval Failed.\n"
+            "DVC may misinterpret this as 'File Not Found' and skip files.\n"
+            f"Command: {command}\n"
+            f"Error: {e}"
+        )
 
         if isinstance(e, subprocess.CalledProcessError):
             error_msg += f"\nStderr: {e.stderr.strip()}"
@@ -58,7 +62,12 @@ def execute_command(command: Union[List[str], str], timeout: int = 10) -> str:
 
         # Re-raise the exception so the caller knows it failed.
         # DVC might catch this and swallow it, but we've done our duty to notify.
-        raise e
+        raise
+
+    token = result.stdout.strip()
+    if not token:
+        raise ValueError("Command executed successfully but returned an empty token.")
+    return token
 
 
 class TokenSaver(Protocol):
@@ -67,15 +76,22 @@ class TokenSaver(Protocol):
     def __call__(self, token: Optional[str]) -> None: ...
 
 
-def safe_callback(cb: Optional[TokenSaver], value: Optional[str], operation: str) -> None:
+def safe_callback(
+    cb: Optional[TokenSaver], value: Optional[str], operation: str
+) -> None:
     """Safely execute callback function with error handling"""
     if not cb:
         return
 
     try:
         cb(value)
-    except Exception as e:
-        _log_with_thread(logging.WARNING, "[BearerAuthClient] Failed to %s token: %s", operation, e)
+    except Exception as e:  # noqa: BLE001
+        _log_with_thread(
+            logging.WARNING,
+            "[BearerAuthClient] Failed to %s token: %s",
+            operation,
+            e,
+        )
 
 
 class BearerAuthClient(httpx.Client):
@@ -89,14 +105,19 @@ class BearerAuthClient(httpx.Client):
     """
 
     def __init__(
-            self,
-            bearer_token_command: str,
-            save_token_cb: Optional[TokenSaver] = None,
-            **kwargs,
+        self,
+        bearer_token_command: str,
+        save_token_cb: Optional[TokenSaver] = None,
+        **kwargs,
     ):
         super().__init__(**kwargs)
-        if not isinstance(bearer_token_command, str) or not bearer_token_command.strip():
-            raise ValueError("[BearerAuthClient] bearer_token_command must be a non-empty string")
+        if (
+            not isinstance(bearer_token_command, str)
+            or not bearer_token_command.strip()
+        ):
+            raise ValueError(
+                "[BearerAuthClient] bearer_token_command must be a non-empty string"
+            )
         self.bearer_token_command = bearer_token_command
         self.save_token_cb = save_token_cb
         self._token: Optional[str] = None
@@ -104,19 +125,22 @@ class BearerAuthClient(httpx.Client):
 
     def _refresh_token_locked(self) -> None:
         """Execute token command and update state."""
-        _log_with_thread(logging.DEBUG, "[BearerAuthClient] Refreshing token via command...")
+        _log_with_thread(
+            logging.DEBUG, "[BearerAuthClient] Refreshing token via command..."
+        )
 
         try:
             new_token = execute_command(self.bearer_token_command)
-            if not new_token:
-                raise ValueError(f"Bearer token command {self.bearer_token_command} returned empty token")
+            # execute_command guarantees non-empty string or raises ValueError
 
             self._token = new_token
             self.headers["Authorization"] = f"Bearer {new_token}"
             safe_callback(self.save_token_cb, new_token, "save")
 
-            _log_with_thread(logging.DEBUG, "[BearerAuthClient] Token refreshed successfully.")
-        except:
+            _log_with_thread(
+                logging.DEBUG, "[BearerAuthClient] Token refreshed successfully."
+            )
+        except Exception:
             # Clean up state on failure
             self._token = None
             # Clear persisted token but don't fail the refresh operation
@@ -150,7 +174,9 @@ class BearerAuthClient(httpx.Client):
         if response.status_code != 401:
             return response
 
-        _log_with_thread(logging.DEBUG, "[BearerAuthClient] Received 401. Attempting recovery.")
+        _log_with_thread(
+            logging.DEBUG, "[BearerAuthClient] Received 401. Attempting recovery."
+        )
         sent_auth_header = response.request.headers.get("Authorization")
 
         try:
@@ -159,10 +185,15 @@ class BearerAuthClient(httpx.Client):
                 if sent_auth_header == current_auth_header:
                     self._refresh_token_locked()
                 else:
-                    _log_with_thread(logging.DEBUG,
-                                     "[BearerAuthClient] Token already refreshed by another thread. Retrying.")
-        except Exception as e:
-            logger.error(f"[BearerAuthClient] Recovery failed: Token refresh threw exception: {e}")
+                    _log_with_thread(
+                        logging.DEBUG,
+                        "[BearerAuthClient] Token already refreshed by another thread. "
+                        "Retrying.",
+                    )
+        except Exception:
+            logger.exception(
+                "[BearerAuthClient] Recovery failed: Token refresh threw exception"
+            )
             return response
 
         # Retry the request with the new valid token
